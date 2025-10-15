@@ -10,6 +10,7 @@ except ModuleNotFoundError:
     print("Please install pylddwrap: 'python -m pip install pylddwrap'")
     exit(1)
 
+FULL_LIB_PATH = int(os.getenv("FULL_LIB_PATH", "0").strip()) # 0 or 1
 VENV = Path(os.path.dirname(os.path.dirname(sys.executable)))
 stream = StringIO()
 
@@ -21,7 +22,7 @@ for library in VENV.rglob("*.so"):
     except:
         print("FAILED:", library)
     _output_json(deps=deps, stream=stream)
-    missing_libs = list(map(lambda dep: dep["soname"], filter(lambda dep: not dep["found"], loads(stream.getvalue()))))
+    missing_libs = list(map(lambda dep: dep["soname"] if not FULL_LIB_PATH else f'{library}->{dep["soname"]}' , filter(lambda dep: not dep["found"], loads(stream.getvalue()))))
     #if missing_libs:
     #    print(library, list(set(missing_libs)))
     libs_needed.update(missing_libs)
